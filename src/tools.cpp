@@ -60,6 +60,7 @@ MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
 
 	if (fabs(c1) < 0.0001) {
 		cout << "CalculateJacobian(): Div by 0 error" << endl;
+		Hj.fill(0.0);
 	} else {
 		Hj << px / c1sqrt, py / c1sqrt, 0.0f, 0.0f,
 			-py / c1, px / c1, 0.0f, 0.0f,

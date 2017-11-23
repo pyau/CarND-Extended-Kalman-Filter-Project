@@ -38,6 +38,8 @@ FusionEKF::FusionEKF() {
   H_laser_ << 1,0,0,0,
               0,1,0,0;
 
+  ax2 = 9.0f;
+  ay2 = 9.0f;
 }
 
 /**
@@ -111,29 +113,28 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
    */
   //cout << "b4 predict" << endl;
   float dt = (measurement_pack.timestamp_ - previous_timestamp_) / 1000000.0;
-  previous_timestamp_ = measurement_pack.timestamp_;
+  if (dt >= 0.001) {  // skip prediction if dt is way too small
+    previous_timestamp_ = measurement_pack.timestamp_;
 
-  //cout << dt << endl;
-  ekf_.F_ = MatrixXd(4,4);
-  ekf_.F_<< 1, 0, dt, 0,
-            0, 1, 0, dt,
-            0, 0, 1, 0,
-            0, 0, 0, 1;
-  //cout << ekf_.F_ << endl;
+    //cout << dt << endl;
+    ekf_.F_ = MatrixXd(4,4);
+    ekf_.F_<< 1, 0, dt, 0,
+              0, 1, 0, dt,
+              0, 0, 1, 0,
+              0, 0, 0, 1;
+    //cout << ekf_.F_ << endl;
 
-  float ax2 = 9.0f;
-  float ay2 = 9.0f;
-  float dt2 = dt * dt;
-  float dt3 = dt2 * dt;
-  float dt4 = dt3 * dt;
-  ekf_.Q_ = MatrixXd(4,4);
-  ekf_.Q_<< dt4*ax2/4.0f,   0.0f,         dt3*ax2/2.0f, 0.0f,
-            0.0f,           dt4*ay2/4.0f, 0.0f,         dt3*ay2/2.0f,
-            dt3*ax2/2.0f,   0.0f,         dt2*ax2,      0.0f,
-            0.0f,           dt3*ay2,      0,            dt2*ay2;
+    float dt2 = dt * dt;
+    float dt3 = dt2 * dt;
+    float dt4 = dt3 * dt;
+    ekf_.Q_ = MatrixXd(4,4);
+    ekf_.Q_<< dt4*ax2/4.0f,   0.0f,         dt3*ax2/2.0f, 0.0f,
+              0.0f,           dt4*ay2/4.0f, 0.0f,         dt3*ay2/2.0f,
+              dt3*ax2/2.0f,   0.0f,         dt2*ax2,      0.0f,
+              0.0f,           dt3*ay2,      0,            dt2*ay2;
 
-  ekf_.Predict();
-
+    ekf_.Predict();
+  }
   /*****************************************************************************
    *  Update
    ****************************************************************************/
